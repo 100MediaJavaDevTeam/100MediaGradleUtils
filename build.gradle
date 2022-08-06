@@ -1,0 +1,54 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradleutils' version '2.+'
+}
+
+group 'dev._100media.gradle'
+version gradleutils.getTagOffsetVersion()
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // implementation 'org.codehaus.groovy:groovy-all:3.0.5'
+}
+
+task copyGradleUtilsGroovy(type: Copy) {
+    outputs.upToDateWhen { false }
+    into 'src/main/groovy'
+    from('buildSrc/src/main/groovy') {
+        include '**/*.groovy'
+    }
+}
+
+compileGroovy.dependsOn(copyGradleUtilsGroovy)
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+publishing {
+    publications {
+        pluginMaven(MavenPublication) {
+            // from components.java is already declared by java-gradle-plugin
+            artifact sourcesJar
+        }
+    }
+    repositories {
+        maven GradleUtils.getPublishingForgeMaven(project)
+    }
+}
