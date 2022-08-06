@@ -48,7 +48,7 @@ publishing {
             artifact sourcesJar
         }
     }
-    repositories {
-        maven GradleUtils.getPublishingForgeMaven(project)
-    }
+    // repositories {
+    //     maven GradleUtils.getPublishingForgeMaven(project)
+    // }
 }
