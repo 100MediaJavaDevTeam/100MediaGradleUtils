@@ -9,6 +9,7 @@ plugins {
 
 group 'dev._100media.gradle'
 version gradleutils.getTagOffsetVersion()
+println 'Version: ' + project.version
 
 java {
     toolchain {
