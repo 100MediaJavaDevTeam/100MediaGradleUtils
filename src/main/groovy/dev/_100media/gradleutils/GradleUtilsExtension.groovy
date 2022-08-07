@@ -74,9 +74,10 @@ class GradleUtilsExtension {
 
     void addJarJarDep(dep, version, versionRange, classifier = null, prefixMcVersion = PREFIX_MARKER,
                       boolean deobf = true, implConfiguration = 'implementation', jarJarConfiguration = 'jarJar') {
+        def project = this.project
         if (prefixMcVersion == PREFIX_MARKER) {
             project.afterEvaluate {
-                addJarJarDep(dep, version, versionRange, classifier, this.project.extensions.extraProperties.find('MC_VERSION'), deobf, implConfiguration, jarJarConfiguration)
+                addJarJarDep(dep, version, versionRange, classifier, project.extensions.extraProperties.find('MC_VERSION'), deobf, implConfiguration, jarJarConfiguration)
             }
             return
         }
@@ -93,7 +94,6 @@ class GradleUtilsExtension {
             versionRange = temp
         }
 
-        def project = this.project
         project.dependencies {
             def depNotation = "${dep}:${version}"
             "${implConfiguration}"(deobf ? project.extensions.getByName("fg").deobf(depNotation) : depNotation)
