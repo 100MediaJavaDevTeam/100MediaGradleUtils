@@ -2,11 +2,11 @@ package dev._100media.gradleutils
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 import javax.inject.Inject
 
 class GradleUtilsExtension {
+    private static final String PREFIX_MARKER = 'blahblahmarker'
     private final Project project
 
     @Inject
@@ -72,8 +72,15 @@ class GradleUtilsExtension {
         addJarJarDep(dep, version, versionRange, classifier, null, deobf, implConfiguration, jarJarConfiguration)
     }
 
-    void addJarJarDep(dep, version, versionRange, classifier = null, prefixMcVersion = this.project.extensions.extraProperties.find('MC_VERSION'),
+    void addJarJarDep(dep, version, versionRange, classifier = null, prefixMcVersion = PREFIX_MARKER,
                       boolean deobf = true, implConfiguration = 'implementation', jarJarConfiguration = 'jarJar') {
+        if (prefixMcVersion == PREFIX_MARKER) {
+            project.afterEvaluate {
+                addJarJarDep(dep, version, versionRange, classifier, this.project.extensions.extraProperties.find('MC_VERSION'), deobf, implConfiguration, jarJarConfiguration)
+            }
+            return
+        }
+
         def suffix = classifier != null && !classifier.isEmpty() ? ":${classifier}" : ""
         if (prefixMcVersion != null && !prefixMcVersion.isEmpty()) {
             def commaIdx = versionRange.indexOf(',')
