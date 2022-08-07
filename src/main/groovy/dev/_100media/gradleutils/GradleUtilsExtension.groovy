@@ -8,10 +8,19 @@ import javax.inject.Inject
 class GradleUtilsExtension {
     private static final String PREFIX_MARKER = 'blahblahmarker'
     private final Project project
+    private String mcVersion
 
     @Inject
     GradleUtilsExtension(Project project) {
         this.project = project
+    }
+
+    void setMcVersion(String mcVersion) {
+        this.mcVersion = mcVersion
+    }
+
+    void mcVersion(String mcVersion) {
+        this.setMcVersion(mcVersion)
     }
 
     /**
@@ -72,16 +81,9 @@ class GradleUtilsExtension {
         addJarJarDep(dep, version, versionRange, classifier, null, deobf, implConfiguration, jarJarConfiguration)
     }
 
-    void addJarJarDep(dep, version, versionRange, classifier = null, prefixMcVersion = PREFIX_MARKER,
+    void addJarJarDep(dep, version, versionRange, classifier = null, prefixMcVersion = this.mcVersion,
                       boolean deobf = true, implConfiguration = 'implementation', jarJarConfiguration = 'jarJar') {
         def project = this.project
-        if (prefixMcVersion == PREFIX_MARKER) {
-            project.afterEvaluate {
-                addJarJarDep(dep, version, versionRange, classifier, project.extensions.extraProperties.find('MC_VERSION'), deobf, implConfiguration, jarJarConfiguration)
-            }
-            return
-        }
-
         def suffix = classifier != null && !classifier.isEmpty() ? ":${classifier}" : ""
         if (prefixMcVersion != null && !prefixMcVersion.isEmpty()) {
             def commaIdx = versionRange.indexOf(',')
