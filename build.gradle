@@ -1,3 +1,5 @@
+import dev._100media.gradleutils.GradleUtils
+
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
@@ -41,6 +43,15 @@ artifacts {
     archives sourcesJar
 }
 
+gradlePlugin {
+    plugins {
+        hundredMediaGradleUtils {
+            id = 'dev._100media.gradleutils'
+            implementationClass = 'dev._100media.gradleutils.GradleUtilsPlugin'
+        }
+    }
+}
+
 publishing {
     publications {
         pluginMaven(MavenPublication) {
@@ -48,7 +59,7 @@ publishing {
             artifact sourcesJar
         }
     }
-    // repositories {
-    //     maven GradleUtils.getPublishingForgeMaven(project)
-    // }
+    repositories {
+        maven GradleUtils.getPublishing100MediaMaven(project)
+    }
 }
