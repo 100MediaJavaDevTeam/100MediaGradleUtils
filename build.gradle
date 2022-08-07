@@ -10,6 +10,7 @@ plugins {
 group 'dev._100media.gradle'
 version gradleutils.getTagOffsetVersion()
 println 'Version: ' + project.version
+println System.env.MAVEN_URL_RELEASES
 
 java {
     toolchain {

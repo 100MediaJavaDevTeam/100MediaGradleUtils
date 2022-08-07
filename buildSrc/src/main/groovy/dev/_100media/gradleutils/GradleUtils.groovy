@@ -39,6 +39,18 @@ class GradleUtils {
         return project.hasProperty('hm_maven_password') ? project.property('hm_maven_password') : System.env.MAVEN_PASSWORD
     }
 
+    static getMavenUrlReleases(Project project) {
+        return project.hasProperty('hm_maven_url_releases')
+                ? project.property('hm_maven_url_releases')
+                : System.env.MAVEN_URL_RELEASES
+    }
+
+    static getMavenUrlSnapshots(Project project) {
+        return project.hasProperty('hm_maven_url_snapshots')
+                ? project.property('hm_maven_url_snapshots')
+                : System.env.MAVEN_URL_SNAPSHOTS
+    }
+
     /**
      * Get a closure to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a publishing block, this closure respects the current project's version,
@@ -72,10 +84,12 @@ class GradleUtils {
             def mavenUser = getMavenUser(project)
             def mavenPassword = getMavenPassword(project)
             if (mavenUser && mavenPassword) {
-                if (isSnapshot && System.env.MAVEN_URL_SNAPSHOTS) {
-                    url System.env.MAVEN_URL_SNAPSHOTS
-                } else if (System.env.MAVEN_URL_RELEASES) {
-                    url System.env.MAVEN_URL_RELEASES
+                def urlSnapshots = getMavenUrlSnapshots(project)
+                def urlReleases = getMavenUrlReleases(project)
+                if (isSnapshot && urlSnapshots) {
+                    url urlSnapshots
+                } else if (urlReleases) {
+                    url urlReleases
                 } else {
                     url isSnapshot ? fallbackSnapshotsEndpoint : fallbackReleasesEndpoint
                 }
