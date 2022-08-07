@@ -86,6 +86,7 @@ class GradleUtilsExtension {
             versionRange = temp
         }
 
+        def project = this.project
         project.dependencies {
             def depNotation = "${dep}:${version}"
             "${implConfiguration}"(deobf ? project.extensions.getByName("fg").deobf(depNotation) : depNotation)
