@@ -1,8 +1,8 @@
 package dev._100media.gradleutils
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 import javax.inject.Inject
 
@@ -35,6 +35,16 @@ class GradleUtilsExtension {
      */
     Closure getPublishing100MediaMaven(File defaultReleasesFolder = this.project.rootProject.file('repo'), File defaultSnapshotsFolder = this.project.rootProject.file('repo')) {
         return GradleUtils.getPublishing100MediaMaven(this.project, defaultReleasesFolder, defaultSnapshotsFolder)
+    }
+
+    /**
+     * Get a closure for the 100 Media maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * in a repositories block.
+     *
+     * @return a closure
+     */
+    Closure get100MediaMaven() {
+        return GradleUtils.get100MediaMaven(this.project)
     }
 
     /**
