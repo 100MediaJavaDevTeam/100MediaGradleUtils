@@ -108,9 +108,11 @@ class GradleUtils {
     }
 
     static setup100MediaCredentials(Project project, MavenArtifactRepository repo) {
-        if (System.env.MAVEN_USER && System.env.MAVEN_PASSWORD) {
+        def mavenUser = getMavenUser(project)
+        def mavenPassword = getMavenPassword(project)
+        if (mavenUser && mavenPassword) {
             repo.credentials {
-                username = getMavenUser(project)
+                username =
                 password = getMavenPassword(project)
             }
             repo.authentication {
