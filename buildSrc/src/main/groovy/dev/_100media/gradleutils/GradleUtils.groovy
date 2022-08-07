@@ -112,8 +112,8 @@ class GradleUtils {
         def mavenPassword = getMavenPassword(project)
         if (mavenUser && mavenPassword) {
             repo.credentials {
-                username =
-                password = getMavenPassword(project)
+                username = mavenUser
+                password = mavenPassword
             }
             repo.authentication {
                 basic(BasicAuthentication)
