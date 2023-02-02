@@ -47,7 +47,7 @@ class GradleUtilsExtension {
     }
 
     /**
-     * Get a closure for the 100 Media maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @return a closure
@@ -57,7 +57,17 @@ class GradleUtilsExtension {
     }
 
     /**
-     * Get a closure for the 100 Media releases maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media public maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * in a repositories block.
+     *
+     * @return a closure
+     */
+    Closure get100MediaPublicMaven() {
+        return GradleUtils.get100MediaPublicMaven(this.project)
+    }
+
+    /**
+     * Get a closure for the 100 Media releases maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @return a closure
@@ -67,7 +77,7 @@ class GradleUtilsExtension {
     }
 
     /**
-     * Get a closure for the 100 Media snapshots maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media snapshots maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @return a closure

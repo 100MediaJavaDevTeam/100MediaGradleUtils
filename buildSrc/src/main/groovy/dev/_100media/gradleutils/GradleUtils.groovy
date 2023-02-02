@@ -122,7 +122,7 @@ class GradleUtils {
     }
 
     /**
-     * Get a closure for the 100 Media maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @param the project
@@ -137,7 +137,21 @@ class GradleUtils {
     }
 
     /**
-     * Get a closure for the 100 Media releases maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media public maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * in a repositories block.
+     *
+     * @param the project
+     * @return a closure
+     */
+    static get100MediaPublicMaven(Project project) {
+        return { MavenArtifactRepository it ->
+            name '100Media-public'
+            url 'https://maven.100media.dev/'
+        }
+    }
+
+    /**
+     * Get a closure for the 100 Media releases maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @param the project
@@ -152,7 +166,7 @@ class GradleUtils {
     }
 
     /**
-     * Get a closure for the 100 Media snapshots maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media snapshots maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @param project the project
