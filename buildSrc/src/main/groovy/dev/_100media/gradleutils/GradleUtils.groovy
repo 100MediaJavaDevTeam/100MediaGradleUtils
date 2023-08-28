@@ -27,7 +27,7 @@ class GradleUtils {
      * @return a closure
      */
     static getPublishing100MediaMaven(Project project, File defaultReleasesFolder = project.rootProject.file('repo'), File defaultSnapshotsFolder = project.rootProject.file('repo')) {
-        return setupSnapshotCompatiblePublishing(project, 'https://maven.100media.dev/main-releases', 'https://maven.100media.dev/main-snapshots',
+        return setupSnapshotCompatiblePublishing(project, 'https://maven.100media.dev/private-releases', 'https://maven.100media.dev/private-snapshots',
                 defaultReleasesFolder, defaultSnapshotsFolder)
     }
 
@@ -79,7 +79,7 @@ class GradleUtils {
     static setupSnapshotCompatiblePublishing(Project project, String fallbackReleasesEndpoint, String fallbackSnapshotsEndpoint,
                                              File defaultReleasesFolder, File defaultSnapshotsFolder) {
         return { MavenArtifactRepository it ->
-            name '100Media'
+            name = '100Media'
             boolean isSnapshot = project.version.toString().endsWith("-SNAPSHOT")
             def mavenUser = getMavenUser(project)
             def mavenPassword = getMavenPassword(project)
@@ -87,11 +87,11 @@ class GradleUtils {
                 def urlSnapshots = getMavenUrlSnapshots(project)
                 def urlReleases = getMavenUrlReleases(project)
                 if (isSnapshot && urlSnapshots) {
-                    url urlSnapshots
+                    url = urlSnapshots
                 } else if (urlReleases) {
-                    url urlReleases
+                    url = urlReleases
                 } else {
-                    url isSnapshot ? fallbackSnapshotsEndpoint : fallbackReleasesEndpoint
+                    url = isSnapshot ? fallbackSnapshotsEndpoint : fallbackReleasesEndpoint
                 }
 
                 authentication {
@@ -102,7 +102,7 @@ class GradleUtils {
                     password = mavenPassword
                 }
             } else {
-                url 'file://' + (isSnapshot ? defaultSnapshotsFolder : defaultReleasesFolder).getAbsolutePath()
+                url = 'file://' + (isSnapshot ? defaultSnapshotsFolder : defaultReleasesFolder).getAbsolutePath()
             }
         }
     }
@@ -129,9 +129,15 @@ class GradleUtils {
      * @return a closure
      */
     static get100MediaMaven(Project project) {
+        project.getRepositories().maven { MavenArtifactRepository it ->
+            name = '100Media-private-releases'
+            url = 'https://maven.100media.dev/private-releases'
+            setup100MediaCredentials(project, it)
+        }
+
         return { MavenArtifactRepository it ->
-            name '100Media'
-            url 'https://maven.100media.dev/'
+            name = '100Media-private-snapshots'
+            url = 'https://maven.100media.dev/private-snapshots'
             setup100MediaCredentials(project, it)
         }
     }
@@ -145,13 +151,13 @@ class GradleUtils {
      */
     static get100MediaPublicMaven(Project project) {
         return { MavenArtifactRepository it ->
-            name '100Media-public'
-            url 'https://maven.100media.dev/'
+            name = '100Media-public'
+            url = 'https://maven.100media.dev/'
         }
     }
 
     /**
-     * Get a closure for the 100 Media releases maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media public releases maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @param the project
@@ -159,14 +165,13 @@ class GradleUtils {
      */
     static get100MediaReleasesMaven(Project project) {
         return { MavenArtifactRepository it ->
-            name '100Media-releases'
-            url 'https://maven.100media.dev/releases'
-            setup100MediaCredentials(project, it)
+            name = '100Media-releases'
+            url = 'https://maven.100media.dev/releases'
         }
     }
 
     /**
-     * Get a closure for the 100 Media snapshots maven including credentials to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
+     * Get a closure for the 100 Media public snapshots maven to be passed into {@link RepositoryHandler#maven(groovy.lang.Closure)}
      * in a repositories block.
      *
      * @param project the project
@@ -174,9 +179,8 @@ class GradleUtils {
      */
     static get100MediaSnapshotsMaven(Project project) {
         return { MavenArtifactRepository it ->
-            name '100Media-snapshots'
-            url 'https://maven.100media.dev/snapshots'
-            setup100MediaCredentials(project, it)
+            name = '100Media-snapshots'
+            url = 'https://maven.100media.dev/snapshots'
         }
     }
 }
