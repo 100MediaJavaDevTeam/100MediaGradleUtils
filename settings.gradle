@@ -1,6 +1,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        maven { url = 'https://repo.nokee.dev/release' }
         maven {
             name = 'NeoForged'
             url = 'https://maven.neoforged.net/'

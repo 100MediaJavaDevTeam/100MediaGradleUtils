@@ -1,6 +1,9 @@
 package dev._100media.gradleutils
 
+import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.UnknownTaskException
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 import javax.inject.Inject
@@ -9,6 +12,7 @@ class GradleUtilsExtension {
     private static final String PREFIX_MARKER = 'blahblahmarker'
     private final Project project
     private String mcVersion
+    private final Set<Dependency> excludedDependencies = new HashSet<>()
 
     @Inject
     GradleUtilsExtension(Project project) {
@@ -91,8 +95,28 @@ class GradleUtilsExtension {
         addJarJarDep(dep, version, versionRange, classifier, null, deobf, implConfiguration, jarJarConfiguration)
     }
 
-    void addJarJarDep(dep, version, versionRange, classifier = null, prefixMcVersion = this.mcVersion,
-                      boolean deobf = true, implConfiguration = 'implementation', jarJarConfiguration = 'jarJar') {
+    void addJarJarDep(dep, version, versionRange, Map<String, ?> map) {
+        addJarJarDep([dep: dep, version: version, versionRange: versionRange] + map)
+    }
+
+    void addJarJarDep(Map<String, ?> map) {
+        if (map.excludeFromObf) {
+            map = new HashMap<>(map)
+            map['configureJarJarDep'] = { Dependency dep ->
+                excludeFromObf(dep)
+            }
+        }
+        addJarJarDep(map.dep, map.version, map.versionRange, map.classifier,
+                map.containsKey('prefixMcVersion') ? map.prefixMcVersion : this.mcVersion,
+                map.containsKey('deobf') ? map.deobf : true,
+                map.containsKey('implConfiguration') ? map.implConfiguration : 'implementation',
+                map.containsKey('jarJarConfiguration') ? map.jarJarConfiguration : 'jarJar',
+                map.configureImplDep, map.configureJarJarDep)
+    }
+
+    void addJarJarDep(dep, version, versionRange, CharSequence classifier = null, prefixMcVersion = this.mcVersion,
+                      boolean deobf = true, implConfiguration = 'implementation', jarJarConfiguration = 'jarJar',
+                      Action<? super Dependency> configureImplDep = null, Action<? super Dependency> configureJarJarDep = null) {
         def project = this.project
         def suffix = classifier != null && !classifier.isEmpty() ? ":${classifier}" : ""
         if (prefixMcVersion != null && !prefixMcVersion.isEmpty()) {
@@ -108,8 +132,42 @@ class GradleUtilsExtension {
 
         project.dependencies {
             def depNotation = "${dep}:${version}"
-            "${implConfiguration}"(deobf ? project.extensions.getByName("fg").deobf(depNotation) : depNotation)
-            "${jarJarConfiguration}"("${dep}:${versionRange}${suffix}")
+            "${implConfiguration}"(deobf ? project.extensions.getByName("fg").deobf(depNotation) : depNotation) {
+                if (configureImplDep != null)
+                    configureImplDep.execute(it)
+            }
+            "${jarJarConfiguration}"("${dep}:${versionRange}${suffix}") {
+                if (configureJarJarDep != null)
+                    configureJarJarDep.execute(it)
+            }
         }
+    }
+
+    void excludeFromObf(Dependency dependency) {
+        // Closure BS
+        def excludedDependencies = excludedDependencies
+        if (excludedDependencies.isEmpty()) {
+            this.project.afterEvaluate { Project project ->
+                try {
+                    project.tasks.named('obfuscateJar', ObfuscateJar) {
+                        excludedArtifacts.addAll(excludedDependencies.collect { dep ->
+                            "${dep.group}:${dep.name}"
+                        })
+                    }
+                } catch (UnknownTaskException ignored) {
+                    project.logger.warn('Attempted to exclude dependencies from obfuscation but could not find a task named \'obfuscateJar\'')
+                }
+            }
+        }
+
+        excludedDependencies.add(dependency)
+    }
+
+    void configureObfuscateJar(Action<? super ObfuscateJar> action) {
+        this.project.tasks.named('assemble') {
+            dependsOn 'obfuscateJar'
+        }
+
+        this.project.tasks.register('obfuscateJar', ObfuscateJar, action)
     }
 }
