@@ -4,12 +4,10 @@ plugins {
     id 'java-gradle-plugin'
     id 'groovy'
     id 'maven-publish'
-    id 'net.neoforged.gradleutils' version '2.+'
     id 'dev.gradleplugins.gradle-plugin-development' version '1.6.10'
 }
 
 group 'dev._100media.gradleutils'
-version gradleutils.getTagOffsetVersion()
 println 'Version: ' + project.version
 
 java {
