@@ -10,6 +10,7 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
@@ -78,6 +79,10 @@ abstract class ObfuscateJar extends DefaultTask {
 
     @Optional
     @Input
+    abstract MapProperty<String, String> getNestedBasePackages()
+
+    @Optional
+    @Input
     abstract Property<Boolean> getExcludeAllNestedJars()
 
     @Optional
@@ -133,7 +138,7 @@ abstract class ObfuscateJar extends DefaultTask {
     ObfuscateJar() {
         overwrite.convention(true)
         logOutput.convention(workingDirectory.map { it.file('log.txt') })
-        toolDependency.convention('dev._100media:JarJarObfuscator:[1.0.7,2.0):all')
+        toolDependency.convention('dev._100media:JarJarObfuscator:[1.0.8,2.0):all')
         // TODO: This doesn't actually let you change toolDependency at all -- need to find a fix to create
         //  a detached configuration that uses the project's repos, but cannot use getProject() in the task action anymore to do this.
         toolConfiguration.convention(project.configurations.detachedConfiguration(project.dependencies.create(toolDependency.get()) {
@@ -241,6 +246,10 @@ abstract class ObfuscateJar extends DefaultTask {
         excludedArtifacts.get().each { artifact ->
             args.add('--exclude-artifact')
             args.add(artifact)
+        }
+        nestedBasePackages.get().each { e ->
+            args.add('--nested-base-package')
+            args.add(e.key + '=' + e.value)
         }
         if (overwrite.present && overwrite.get())
             args.add('--overwrite')
