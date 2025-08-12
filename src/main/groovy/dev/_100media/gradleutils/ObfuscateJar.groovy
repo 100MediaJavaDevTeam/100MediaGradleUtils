@@ -30,6 +30,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.process.ExecOperations
 import org.gradle.util.internal.GUtil
 import org.gradle.work.DisableCachingByDefault
 
@@ -77,6 +78,10 @@ abstract class ObfuscateJar extends DefaultTask {
 
     @Optional
     @Input
+    abstract Property<Boolean> getExcludeAllNestedJars()
+
+    @Optional
+    @Input
     abstract Property<Boolean> getOverwrite()
 
     @Internal
@@ -88,12 +93,18 @@ abstract class ObfuscateJar extends DefaultTask {
     @Internal
     abstract Property<String> getToolDependency()
 
+    @Internal
+    abstract ConfigurableFileCollection getToolConfiguration()
+
     @Nested
     @Optional
     abstract Property<JavaLauncher> getJavaLauncher()
 
     @Inject
     protected abstract JavaToolchainService getJavaToolchainService()
+
+    @Inject
+    protected abstract ExecOperations getExecOperations()
 
     // Internal archiveFile satellite properties -- they all feed into archiveFile
     @Internal
@@ -122,13 +133,16 @@ abstract class ObfuscateJar extends DefaultTask {
     ObfuscateJar() {
         overwrite.convention(true)
         logOutput.convention(workingDirectory.map { it.file('log.txt') })
-        toolDependency.convention('dev._100media:JarJarObfuscator:[1.0.5,2.0):all')
+        toolDependency.convention('dev._100media:JarJarObfuscator:[1.0.6,2.0):all')
+        toolConfiguration.convention(project.configurations.detachedConfiguration(project.dependencies.create(toolDependency.get()) {
+            transitive = false
+        }))
         archiveClassifier.set("obf")
         archiveExtension.set(Jar.DEFAULT_EXTENSION)
 
-        def javaExtension = getProject().getExtensions().findByType(JavaPluginExtension)
+        def javaExtension = project.extensions.findByType(JavaPluginExtension)
         if (javaExtension != null)
-            javaLauncher.convention(getJavaToolchainService().launcherFor(javaExtension.getToolchain()))
+            javaLauncher.convention(javaToolchainService.launcherFor(javaExtension.getToolchain()))
 
         setMinimumRuntimeJavaVersion(17)
 
@@ -149,8 +163,10 @@ abstract class ObfuscateJar extends DefaultTask {
     }
 
     void setupDefaults() {
-        minecraftJar.convention(defaultMinecraftJar)
-        mappings.convention(project.tasks.named('createSrgToMcp').flatMap { it.output })
+        if (project.plugins.hasPlugin("net.minecraftforge.gradle")) {
+            minecraftJar.convention(defaultMinecraftJar)
+            mappings.convention(project.tasks.named('createSrgToMcp').flatMap { it.output })
+        }
 
         // Cache in Jenkins so that we can identify potential runtime obf issues later
         mappingsOutput.convention(project.layout.buildDirectory.dir('libs'))
@@ -226,6 +242,8 @@ abstract class ObfuscateJar extends DefaultTask {
         }
         if (overwrite.present && overwrite.get())
             args.add('--overwrite')
+        if (excludeAllNestedJars.present && excludeAllNestedJars.get())
+            args.add('--exclude-all-nested')
         libraries.each { file ->
             args.add('--lib')
             args.add(file.absolutePath)
@@ -236,11 +254,9 @@ abstract class ObfuscateJar extends DefaultTask {
             logOutputFile.parentFile.mkdirs()
 
         try (def log = new PrintWriter(logOutput.present ? new FileWriter(logOutputFile) : NullWriter.DEFAULT, true)) {
-            project.javaexec {
+            execOperations.javaexec {
                 executable effectiveExecutable
-                classpath.from project.configurations.detachedConfiguration(project.dependencies.create(toolDependency.get()) {
-                    transitive = false
-                })
+                classpath.from toolConfiguration
 
                 if (this.debug.present && this.debug.get())
                     setDebug(true)
