@@ -138,7 +138,7 @@ abstract class ObfuscateJar extends DefaultTask {
     ObfuscateJar() {
         overwrite.convention(true)
         logOutput.convention(workingDirectory.map { it.file('log.txt') })
-        toolDependency.convention('dev._100media:JarJarObfuscator:[1.0.9,2.0):all')
+        toolDependency.convention('dev._100media:JarJarObfuscator:[1.0.10,2.0):all')
         // TODO: This doesn't actually let you change toolDependency at all -- need to find a fix to create
         //  a detached configuration that uses the project's repos, but cannot use getProject() in the task action anymore to do this.
         toolConfiguration.convention(project.configurations.detachedConfiguration(project.dependencies.create(toolDependency.get()) {
